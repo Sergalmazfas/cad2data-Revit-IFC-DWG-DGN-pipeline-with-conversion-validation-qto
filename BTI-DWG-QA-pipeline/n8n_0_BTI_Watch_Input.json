@@ -1,0 +1,245 @@
+{
+  "name": "BTI_0_Watch_Input_AutoStart",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "C:\\bti\\input",
+        "event": "add",
+        "watchSubfolders": false
+      },
+      "type": "n8n-nodes-base.localFileTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "id": "file-trigger-1",
+      "name": "Watch Input Folder"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.path}}",
+              "operation": "endsWith",
+              "value2": ".dwg"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [460, 300],
+      "id": "filter-dwg-1",
+      "name": "Check if DWG"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dwg-file-path",
+              "name": "dwg_file_path",
+              "value": "={{$json.path}}",
+              "type": "string"
+            },
+            {
+              "id": "dwg-filename",
+              "name": "dwg_filename",
+              "value": "={{$json.name}}",
+              "type": "string"
+            },
+            {
+              "id": "timestamp",
+              "name": "detection_timestamp",
+              "value": "={{ new Date().toISOString() }}",
+              "type": "string"
+            },
+            {
+              "id": "template",
+              "name": "template_name",
+              "value": "Basmanny",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [680, 200],
+      "id": "set-variables-1",
+      "name": "Set Variables"
+    },
+    {
+      "parameters": {
+        "command": "python C:\\bti\\scripts\\apply_basman_template.py \"={{$json.dwg_file_path}}\" \"\" \"={{$json.template_name}}\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [900, 200],
+      "id": "apply-template-1",
+      "name": "Apply Basmanny Template",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "success-check",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notExists"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1120, 200],
+      "id": "check-success-1",
+      "name": "Check Template Applied?"
+    },
+    {
+      "parameters": {
+        "workflowId": "={{ $workflow.id + 1 }}"
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1360, 100],
+      "id": "execute-convert-1",
+      "name": "Execute BTI_1_Convert"
+    },
+    {
+      "parameters": {
+        "workflowId": "={{ $workflow.id + 2 }}"
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1580, 100],
+      "id": "execute-validation-1",
+      "name": "Execute BTI_2_Validation"
+    },
+    {
+      "parameters": {
+        "workflowId": "={{ $workflow.id + 3 }}"
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1800, 100],
+      "id": "execute-qto-1",
+      "name": "Execute BTI_3_QTO"
+    },
+    {
+      "parameters": {
+        "command": "python C:\\bti\\scripts\\send_telegram_report.py"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [2020, 100],
+      "id": "send-telegram-1",
+      "name": "Send Telegram Notification"
+    },
+    {
+      "parameters": {
+        "content": "## 🚀 BTI Auto-Start Pipeline\n\n**Trigger**: File added to C:\\bti\\input\n\n**Actions**:\n1. Detect new DWG file\n2. Apply Basmanny template\n3. Convert DWG → XLSX\n4. Validate data\n5. Generate QTO report\n6. Send Telegram notification\n\n**Template**: Басманный",
+        "height": 420,
+        "width": 300,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [160, 40],
+      "id": "sticky-note-1",
+      "name": "Info Note"
+    },
+    {
+      "parameters": {
+        "content": "## ❌ Template Failed\n\nIf template application fails:\n- Log error\n- Skip conversion\n- Notify via Telegram",
+        "height": 280,
+        "width": 240,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1080, 360],
+      "id": "sticky-note-error",
+      "name": "Error Note"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Log file detection\nconst logData = {\n  type: 'file_detected',\n  file: $input.first().json.dwg_filename,\n  path: $input.first().json.dwg_file_path,\n  timestamp: new Date().toISOString(),\n  template: $input.first().json.template_name,\n  status: 'processing'\n};\n\n// Write to log file\nconst fs = require('fs');\nconst logFile = 'C:\\\\bti\\\\output\\\\logs\\\\auto_start.json';\n\nlet logs = [];\ntry {\n  if (fs.existsSync(logFile)) {\n    const content = fs.readFileSync(logFile, 'utf8');\n    logs = JSON.parse(content);\n  }\n} catch (e) {\n  logs = [];\n}\n\nlogs.push(logData);\n\nfs.writeFileSync(logFile, JSON.stringify(logs, null, 2));\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 400],
+      "id": "log-detection-1",
+      "name": "Log File Detection"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Log error\nconst errorData = {\n  type: 'template_failed',\n  file: $input.first().json.dwg_filename,\n  error: $input.first().json.error || 'Unknown error',\n  timestamp: new Date().toISOString()\n};\n\nconst fs = require('fs');\nconst errorLog = 'C:\\\\bti\\\\output\\\\logs\\\\errors.json';\n\nlet errors = [];\ntry {\n  if (fs.existsSync(errorLog)) {\n    const content = fs.readFileSync(errorLog, 'utf8');\n    errors = JSON.parse(content);\n  }\n} catch (e) {\n  errors = [];\n}\n\nerrors.push(errorData);\n\nfs.writeFileSync(errorLog, JSON.stringify(errors, null, 2));\n\nreturn [{ json: errorData }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1360, 300],
+      "id": "log-error-1",
+      "name": "Log Error"
+    }
+  ],
+  "connections": {
+    "Watch Input Folder": {
+      "main": [[{"node": "Check if DWG", "type": "main", "index": 0}]]
+    },
+    "Check if DWG": {
+      "main": [
+        [{"node": "Set Variables", "type": "main", "index": 0}],
+        []
+      ]
+    },
+    "Set Variables": {
+      "main": [
+        [
+          {"node": "Apply Basmanny Template", "type": "main", "index": 0},
+          {"node": "Log File Detection", "type": "main", "index": 0}
+        ]
+      ]
+    },
+    "Apply Basmanny Template": {
+      "main": [[{"node": "Check Template Applied?", "type": "main", "index": 0}]]
+    },
+    "Check Template Applied?": {
+      "main": [
+        [{"node": "Execute BTI_1_Convert", "type": "main", "index": 0}],
+        [{"node": "Log Error", "type": "main", "index": 0}]
+      ]
+    },
+    "Execute BTI_1_Convert": {
+      "main": [[{"node": "Execute BTI_2_Validation", "type": "main", "index": 0}]]
+    },
+    "Execute BTI_2_Validation": {
+      "main": [[{"node": "Execute BTI_3_QTO", "type": "main", "index": 0}]]
+    },
+    "Execute BTI_3_QTO": {
+      "main": [[{"node": "Send Telegram Notification", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-10-20T00:00:00.000Z",
+  "versionId": "1"
+}
+
