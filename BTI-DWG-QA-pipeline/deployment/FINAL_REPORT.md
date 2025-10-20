@@ -29,9 +29,11 @@ BTI DWG QA Pipeline has been successfully deployed and tested with **Basmanny di
 |----------|-------|
 | **Name** | Басманный (Basmanny) |
 | **District** | Басманный район, Москва |
+| **Source File** | Чертеж Басманная Новая обмерный план.dwg |
+| **Template File** | BasmanTitleBlock.dwg (51 KB) |
 | **Insert Block** | BasmanInsert |
 | **Coordinate System** | MSK-Moscow |
-| **Status** | ✅ Active |
+| **Status** | ✅ Active & Loaded |
 
 ### Layer Configuration
 
@@ -376,9 +378,11 @@ gcloud compute instances get-serial-port-output instance-20251019-062935 --zone=
 ### Current Limitations
 
 1. **Template Application**:
-   - Currently uses Python placeholder (ezdxf/pyautocad not yet integrated)
-   - Full DWG manipulation requires additional libraries
-   - Template preview not available
+   - ✅ Real Basmanny template DWG file loaded (51 KB)
+   - ✅ Source: "Чертеж Басманная Новая обмерный план.dwg"
+   - ✅ File exists in: templates/BasmanTitleBlock.dwg
+   - ⚠️  Full DWG manipulation via ezdxf/pyautocad - planned for v1.1
+   - Current: Template configuration ready, file available for manual/API use
 
 2. **File Size**:
    - Large DWG files (>50 MB) may take longer to process
