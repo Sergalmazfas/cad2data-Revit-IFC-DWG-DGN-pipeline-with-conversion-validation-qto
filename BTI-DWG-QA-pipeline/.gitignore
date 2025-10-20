@@ -2,12 +2,15 @@
 
 # Output files
 *.xlsx
-*.dwg
 *.dxf
 *.pdf
 *.html
 output/
 Output/
+
+# DWG files (ignore all except templates)
+*.dwg
+!templates/*.dwg
 
 # Logs
 logs/
