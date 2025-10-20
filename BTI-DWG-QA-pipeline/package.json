@@ -1,0 +1,38 @@
+{
+  "name": "bti-dwg-qa-pipeline",
+  "version": "1.0.0",
+  "description": "DWG-only QA Pipeline for BTI (Bureau of Technical Inventory) - Automated DWG conversion, validation, and quantity take-off reports",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx n8n",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "dwg",
+    "autocad",
+    "bti",
+    "qa",
+    "validation",
+    "qto",
+    "quantity-takeoff",
+    "n8n",
+    "automation",
+    "construction"
+  ],
+  "author": "DataDrivenConstruction",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/datadrivenconstruction/BTI-DWG-QA-pipeline.git"
+  },
+  "bugs": {
+    "url": "https://github.com/datadrivenconstruction/BTI-DWG-QA-pipeline/issues"
+  },
+  "homepage": "https://github.com/datadrivenconstruction/BTI-DWG-QA-pipeline#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
+
