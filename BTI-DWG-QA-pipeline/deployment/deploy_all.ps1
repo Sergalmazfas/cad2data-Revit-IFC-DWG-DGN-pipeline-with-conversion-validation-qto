@@ -109,6 +109,14 @@ Write-Host ""
 
 .\setup_telegram.ps1
 
+Write-Host ""
+Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+Write-Host "STEP 5b/7: Telegram Bot Server (3-5 min)" -ForegroundColor Cyan
+Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+Write-Host ""
+
+.\setup_telegram_bot_service.ps1
+
 Write-Host "✅ Step 5 completed!" -ForegroundColor Green
 Start-Sleep -Seconds 2
 
