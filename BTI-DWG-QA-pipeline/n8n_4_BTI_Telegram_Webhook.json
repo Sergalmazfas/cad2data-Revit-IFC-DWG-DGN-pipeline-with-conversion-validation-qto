@@ -1,0 +1,229 @@
+{
+  "name": "BTI_4_Telegram_Webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bti_telegram_trigger",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "id": "webhook-trigger-telegram",
+      "name": "Webhook Telegram Bot",
+      "webhookId": "bti-telegram-webhook"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "file-name-id",
+              "name": "file_name",
+              "value": "={{ $json.body.file_name }}",
+              "type": "string"
+            },
+            {
+              "id": "chat-id",
+              "name": "chat_id",
+              "value": "={{ $json.body.chat_id }}",
+              "type": "string"
+            },
+            {
+              "id": "user-id",
+              "name": "user_id",
+              "value": "={{ $json.body.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "timestamp",
+              "name": "trigger_timestamp",
+              "value": "={{ $json.body.timestamp || new Date().toISOString() }}",
+              "type": "string"
+            },
+            {
+              "id": "dwg-path",
+              "name": "dwg_file_path",
+              "value": "={{ 'C:\\\\bti\\\\input\\\\' + $json.body.file_name }}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 300],
+      "id": "extract-telegram-data",
+      "name": "Extract Telegram Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Log Telegram trigger\nconst data = $input.first().json;\nconst fs = require('fs');\nconst logFile = 'C:\\\\bti\\\\output\\\\logs\\\\telegram_triggers.json';\n\nlet logs = [];\ntry {\n  if (fs.existsSync(logFile)) {\n    logs = JSON.parse(fs.readFileSync(logFile, 'utf8'));\n  }\n} catch (e) {\n  logs = [];\n}\n\nlogs.push({\n  type: 'telegram_upload',\n  file_name: data.file_name,\n  chat_id: data.chat_id,\n  user_id: data.user_id,\n  timestamp: new Date().toISOString(),\n  status: 'triggered'\n});\n\nfs.writeFileSync(logFile, JSON.stringify(logs, null, 2));\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300],
+      "id": "log-telegram-trigger",
+      "name": "Log Telegram Trigger"
+    },
+    {
+      "parameters": {
+        "workflowId": "={{ $workflow.id - 3 }}"
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [900, 200],
+      "id": "execute-convert",
+      "name": "Execute BTI_1_Convert"
+    },
+    {
+      "parameters": {
+        "workflowId": "={{ $workflow.id - 2 }}"
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1120, 200],
+      "id": "execute-validation",
+      "name": "Execute BTI_2_Validation"
+    },
+    {
+      "parameters": {
+        "workflowId": "={{ $workflow.id - 1 }}"
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1340, 200],
+      "id": "execute-qto",
+      "name": "Execute BTI_3_QTO"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare result data for Telegram\nconst inputData = $input.first().json;\nconst fs = require('fs');\n\n// Read QA log\nlet qaLog = {};\ntry {\n  const qaLogPath = 'C:\\\\bti\\\\output\\\\logs\\\\qa_log.json';\n  if (fs.existsSync(qaLogPath)) {\n    qaLog = JSON.parse(fs.readFileSync(qaLogPath, 'utf8'));\n  }\n} catch (e) {\n  console.log('Failed to read QA log:', e);\n}\n\n// Prepare response\nconst result = {\n  chat_id: inputData.chat_id,\n  file_name: inputData.file_name,\n  status: 'success',\n  qa_log: qaLog,\n  files: {\n    basman_dwg: `C:\\\\bti\\\\output\\\\converted\\\\${inputData.file_name.replace('.dwg', '_basman.dwg')}`,\n    xlsx: `C:\\\\bti\\\\output\\\\${inputData.file_name.replace('.dwg', '_dwg.xlsx')}`,\n    qto_html: `C:\\\\bti\\\\output\\\\${inputData.file_name.replace('.dwg', '_QTO.html')}`,\n    qa_json: 'C:\\\\bti\\\\output\\\\logs\\\\qa_log.json'\n  },\n  timestamp: new Date().toISOString()\n};\n\nreturn [{ json: result }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 200],
+      "id": "prepare-telegram-response",
+      "name": "Prepare Telegram Response"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/send_results",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ $json.chat_id }}"
+            },
+            {
+              "name": "file_name",
+              "value": "={{ $json.file_name }}"
+            },
+            {
+              "name": "status",
+              "value": "={{ $json.status }}"
+            },
+            {
+              "name": "qa_log",
+              "value": "={{ JSON.stringify($json.qa_log) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1780, 200],
+      "id": "notify-telegram-bot",
+      "name": "Notify Telegram Bot",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"status\": \"success\", \"message\": \"Processing started for \" + $node['Extract Telegram Data'].json.file_name } }}"
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [900, 400],
+      "id": "respond-to-webhook",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "content": "## 📱 Telegram Webhook\n\n**Endpoint**: /webhook/bti_telegram_trigger\n\n**Receives**:\n- file_name\n- chat_id\n- user_id\n- timestamp\n\n**Triggers**: Complete BTI pipeline\n\n**Returns**: Results to Telegram bot",
+        "height": 420,
+        "width": 300,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [140, 100],
+      "id": "sticky-note-webhook",
+      "name": "Webhook Info"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Error handler for Telegram notification\nconst inputData = $input.first().json;\n\nconst errorResult = {\n  chat_id: inputData.chat_id || '',\n  file_name: inputData.file_name || 'unknown',\n  status: 'error',\n  error_message: $json.error || 'Processing failed',\n  timestamp: new Date().toISOString()\n};\n\n// Log error\nconst fs = require('fs');\nconst errorLog = 'C:\\\\bti\\\\output\\\\logs\\\\telegram_errors.json';\nlet errors = [];\ntry {\n  if (fs.existsSync(errorLog)) {\n    errors = JSON.parse(fs.readFileSync(errorLog, 'utf8'));\n  }\n} catch (e) {}\n\nerrors.push(errorResult);\nfs.writeFileSync(errorLog, JSON.stringify(errors, null, 2));\n\nreturn [{ json: errorResult }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 400],
+      "id": "handle-error",
+      "name": "Handle Error"
+    }
+  ],
+  "connections": {
+    "Webhook Telegram Bot": {
+      "main": [
+        [
+          {"node": "Extract Telegram Data", "type": "main", "index": 0},
+          {"node": "Respond to Webhook", "type": "main", "index": 0}
+        ]
+      ]
+    },
+    "Extract Telegram Data": {
+      "main": [[{"node": "Log Telegram Trigger", "type": "main", "index": 0}]]
+    },
+    "Log Telegram Trigger": {
+      "main": [[{"node": "Execute BTI_1_Convert", "type": "main", "index": 0}]]
+    },
+    "Execute BTI_1_Convert": {
+      "main": [
+        [{"node": "Execute BTI_2_Validation", "type": "main", "index": 0}],
+        [{"node": "Handle Error", "type": "main", "index": 0}]
+      ]
+    },
+    "Execute BTI_2_Validation": {
+      "main": [
+        [{"node": "Execute BTI_3_QTO", "type": "main", "index": 0}],
+        [{"node": "Handle Error", "type": "main", "index": 0}]
+      ]
+    },
+    "Execute BTI_3_QTO": {
+      "main": [
+        [{"node": "Prepare Telegram Response", "type": "main", "index": 0}],
+        [{"node": "Handle Error", "type": "main", "index": 0}]
+      ]
+    },
+    "Prepare Telegram Response": {
+      "main": [[{"node": "Notify Telegram Bot", "type": "main", "index": 0}]]
+    },
+    "Handle Error": {
+      "main": [[{"node": "Notify Telegram Bot", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-10-20T00:00:00.000Z",
+  "versionId": "1"
+}
+
