@@ -14,7 +14,7 @@
 
 ### ✅ Google Cloud Prerequisites
 
-- [ ] **GCP Project**: swiftchair
+- [ ] **GCP Project**: talkhint
 - [ ] **VM Instance**: instance-20251019-062935 (running)
 - [ ] **Zone**: us-central1-f
 - [ ] **OS**: Windows Server 2025 Core
@@ -40,7 +40,7 @@
 # From your Mac/Linux
 gcloud compute ssh instance-20251019-062935 \
     --zone=us-central1-f \
-    --project=swiftchair
+    --project=talkhint
 ```
 
 **Verification**:
@@ -200,7 +200,7 @@ Invoke-WebRequest http://localhost:5678/healthz
 ```bash
 # From Mac/Linux
 gcloud logging read "jsonPayload.pipeline_name=\"BTI-DWG-QA\"" \
-    --project=swiftchair \
+    --project=talkhint \
     --limit=10
 ```
 
@@ -214,7 +214,7 @@ gcloud logging read "jsonPayload.pipeline_name=\"BTI-DWG-QA\"" \
 gcloud compute instances get-serial-port-output instance-20251019-062935 \
     --zone=us-central1-f \
     --port=1 \
-    --project=swiftchair
+    --project=talkhint
 ```
 
 **Expected**:

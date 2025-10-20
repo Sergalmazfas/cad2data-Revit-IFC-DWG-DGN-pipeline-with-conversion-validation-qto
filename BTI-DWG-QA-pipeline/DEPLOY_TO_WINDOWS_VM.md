@@ -29,11 +29,11 @@
 ```bash
 gcloud compute ssh instance-20251019-062935 \
     --zone=us-central1-f \
-    --project=swiftchair
+    --project=talkhint
 ```
 
 **Вариант 2: Через Cloud Console**
-1. Откройте: https://console.cloud.google.com/compute/instances?project=swiftchair
+1. Откройте: https://console.cloud.google.com/compute/instances?project=talkhint
 2. Найдите: instance-20251019-062935
 3. Нажмите: **SSH** → **Open in browser window**
 
@@ -187,17 +187,17 @@ Get-ChildItem C:\bti\output\*_QTO.html   # QTO отчет
 ```bash
 # Просмотр логов BTI pipeline
 gcloud logging read "jsonPayload.pipeline_name=\"BTI-DWG-QA\"" \
-    --project=swiftchair \
+    --project=talkhint \
     --limit=20 \
     --format=json
 
 # Фильтр по типу
 gcloud logging read "jsonPayload.type=\"conversion\"" \
-    --project=swiftchair \
+    --project=talkhint \
     --limit=10
 
 # Web UI
-open "https://console.cloud.google.com/logs/query?project=swiftchair"
+open "https://console.cloud.google.com/logs/query?project=talkhint"
 ```
 
 ### Serial Port Console
@@ -206,7 +206,7 @@ open "https://console.cloud.google.com/logs/query?project=swiftchair"
 # С локального Mac
 gcloud compute instances get-serial-port-output instance-20251019-062935 \
     --zone=us-central1-f \
-    --project=swiftchair \
+    --project=talkhint \
     --port=1
 ```
 

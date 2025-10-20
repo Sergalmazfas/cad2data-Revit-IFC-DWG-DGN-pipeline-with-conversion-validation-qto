@@ -73,7 +73,7 @@ Deploy the entire BTI DWG QA Pipeline on Windows Server VM in **5 simple steps**
 ## 📋 Prerequisites
 
 ### Google Cloud
-- **Project**: `swiftchair`
+- **Project**: `talkhint`
 - **Instance**: `instance-20251019-062935`
 - **Zone**: `us-central1-f`
 - **OS**: Windows Server 2025 Core
@@ -109,7 +109,7 @@ git clone https://github.com/datadrivenconstruction/cad2data-*.git
 
 # Optional parameters:
 .\deploy_bti_pipeline.ps1 `
-    -ProjectId "swiftchair" `
+    -ProjectId "talkhint" `
     -Zone "us-central1-f" `
     -InstanceName "instance-20251019-062935" `
     -RepoPath "C:\Users\Administrator\cad2data-*"
@@ -284,7 +284,7 @@ Restart-Service -Name "n8n" -Force
 gcloud secrets list
 
 # Grant access
-gcloud projects add-iam-policy-binding swiftchair \
+gcloud projects add-iam-policy-binding talkhint \
     --member="serviceAccount:SA_EMAIL" \
     --role="roles/secretmanager.secretAccessor"
 ```

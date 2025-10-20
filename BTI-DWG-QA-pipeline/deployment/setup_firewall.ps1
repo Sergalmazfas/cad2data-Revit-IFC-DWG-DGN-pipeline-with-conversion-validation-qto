@@ -5,7 +5,7 @@
 # =============================================================================
 
 param(
-    [string]$ProjectId = "swiftchair",
+    [string]$ProjectId = "talkhint",
     [string]$Zone = "us-central1-f",
     [string]$InstanceName = "instance-20251019-062935",
     [int]$N8nPort = 5678

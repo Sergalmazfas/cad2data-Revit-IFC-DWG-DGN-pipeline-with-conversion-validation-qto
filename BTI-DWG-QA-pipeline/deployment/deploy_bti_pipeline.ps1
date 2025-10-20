@@ -8,7 +8,7 @@
 # =============================================================================
 
 param(
-    [string]$ProjectId = "swiftchair",
+    [string]$ProjectId = "talkhint",
     [string]$Zone = "us-central1-f",
     [string]$InstanceName = "instance-20251019-062935",
     [string]$RepoPath = "C:\Users\Administrator\cad2data-Revit-IFC-DWG-DGN-pipeline-with-conversion-validation-qto"

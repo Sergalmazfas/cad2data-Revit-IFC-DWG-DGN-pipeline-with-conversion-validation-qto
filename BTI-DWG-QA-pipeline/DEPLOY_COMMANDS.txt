@@ -4,14 +4,14 @@ BTI DWG QA Pipeline v1.0.0-basman-telegram - PRODUCTION DEPLOYMENT COMMANDS
 
 Instance: instance-20251019-062935
 Zone: us-central1-f
-Project: swiftchair
+Project: talkhint
 External IP: 104.198.201.212
 
 ═══════════════════════════════════════════════════════════════════════════════
 ШАГ 1: ПОДКЛЮЧЕНИЕ К VM (с вашего Mac/Linux)
 ═══════════════════════════════════════════════════════════════════════════════
 
-gcloud compute ssh instance-20251019-062935 --zone=us-central1-f --project=swiftchair
+gcloud compute ssh instance-20251019-062935 --zone=us-central1-f --project=talkhint
 
 
 ═══════════════════════════════════════════════════════════════════════════════
@@ -137,7 +137,7 @@ Get-Content C:\bti\output\logs\telegram_triggers.json
 
 Cloud Logging (с Mac/Linux):
 ──────────────────────────────
-gcloud logging read "jsonPayload.pipeline_name=\"BTI-DWG-QA\"" --project=swiftchair --limit=20
+gcloud logging read "jsonPayload.pipeline_name=\"BTI-DWG-QA\"" --project=talkhint --limit=20
 
 
 n8n Execution History:

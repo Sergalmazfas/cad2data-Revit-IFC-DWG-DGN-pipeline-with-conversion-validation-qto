@@ -4,7 +4,7 @@
 
 **Instance**: instance-20251019-062935  
 **Zone**: us-central1-f  
-**Project**: swiftchair  
+**Project**: talkhint  
 **External IP**: 104.198.201.212
 
 ---
@@ -17,7 +17,7 @@
 # С локального Mac/Linux
 gcloud compute ssh instance-20251019-062935 \
     --zone=us-central1-f \
-    --project=swiftchair
+    --project=talkhint
 ```
 
 Или через Cloud Console → Compute Engine → SSH
@@ -276,7 +276,7 @@ Get-Content C:\bti\output\logs\qa_log.json  # Результаты валида�
 # Должно прийти уведомление от @N8Ndwg_bot
 
 # 4. Проверить Cloud Logging
-# https://console.cloud.google.com/logs/query?project=swiftchair
+# https://console.cloud.google.com/logs/query?project=talkhint
 # Фильтр: jsonPayload.pipeline_name="BTI-DWG-QA"
 ```
 
@@ -305,7 +305,7 @@ Get-ChildItem C:\bti\output\logs\
 
 # Cloud Logging (из локального Mac)
 gcloud logging read "jsonPayload.pipeline_name=\"BTI-DWG-QA\"" \
-    --project=swiftchair \
+    --project=talkhint \
     --limit=20
 
 # Serial Port

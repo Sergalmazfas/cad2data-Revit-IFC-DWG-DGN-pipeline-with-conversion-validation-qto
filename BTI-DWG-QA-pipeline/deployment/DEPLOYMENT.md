@@ -9,7 +9,7 @@ Complete deployment guide for BTI DWG QA Pipeline on **Windows Server 2025 Core*
 - Machine Type: `n2-standard-2`
 - OS: Windows Server 2025 Core
 - Zone: `us-central1-f`
-- Project: `swiftchair`
+- Project: `talkhint`
 
 ---
 
@@ -178,7 +178,7 @@ n8n is now accessible at:
 [4/4] Enabling Serial Port 1...
 
 View logs at:
-  https://console.cloud.google.com/logs/query?project=swiftchair
+  https://console.cloud.google.com/logs/query?project=talkhint
 ```
 
 ---
@@ -336,23 +336,23 @@ Invoke-RestMethod -Uri $apiUrl -Method POST -Body @{
 ```bash
 # View all BTI logs
 gcloud logging read "jsonPayload.pipeline_name=\"BTI-DWG-QA\"" \
-    --project=swiftchair \
+    --project=talkhint \
     --limit=50
 
 # View conversion logs
 gcloud logging read "jsonPayload.type=\"conversion\"" \
-    --project=swiftchair \
+    --project=talkhint \
     --limit=20
 
 # View validation logs
 gcloud logging read "jsonPayload.type=\"validation\"" \
-    --project=swiftchair \
+    --project=talkhint \
     --limit=20
 ```
 
 ### Cloud Logging Web UI
 
-https://console.cloud.google.com/logs/query?project=swiftchair
+https://console.cloud.google.com/logs/query?project=talkhint
 
 **Query examples:**
 ```
@@ -411,12 +411,12 @@ python C:\bti\scripts\send_telegram_report.py
 
 ```bash
 # Check IAM permissions
-gcloud projects get-iam-policy swiftchair \
+gcloud projects get-iam-policy talkhint \
     --flatten="bindings[].members" \
     --filter="bindings.members:serviceAccount:*"
 
 # Grant secretAccessor role
-gcloud projects add-iam-policy-binding swiftchair \
+gcloud projects add-iam-policy-binding talkhint \
     --member="serviceAccount:SERVICE_ACCOUNT_EMAIL" \
     --role="roles/secretmanager.secretAccessor"
 ```

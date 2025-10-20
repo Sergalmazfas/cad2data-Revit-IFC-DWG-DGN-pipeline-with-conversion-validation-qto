@@ -162,7 +162,7 @@ BTI DWG QA Pipeline has been successfully deployed and tested with **Basmanny di
 │ 7. Cloud Logging (Google Ops Agent)                            │
 │    ├─ Collect: qa_log.json, qa_log.txt                         │
 │    ├─ Collect: auto_start.json, errors.json                    │
-│    └─ Send to: Cloud Logging (project: swiftchair)             │
+│    └─ Send to: Cloud Logging (project: talkhint)             │
 └─────────────────────────────────────────────────────────────────┘
 ```
 

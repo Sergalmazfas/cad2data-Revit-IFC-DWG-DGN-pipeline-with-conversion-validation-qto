@@ -5,7 +5,7 @@
 # =============================================================================
 
 param(
-    [string]$ProjectId = "swiftchair",
+    [string]$ProjectId = "talkhint",
     [string]$BucketName = "",
     [string]$TemplateFileName = "BasmanTitleBlock.dwg",
     [string]$DestinationPath = "C:\bti\templates"

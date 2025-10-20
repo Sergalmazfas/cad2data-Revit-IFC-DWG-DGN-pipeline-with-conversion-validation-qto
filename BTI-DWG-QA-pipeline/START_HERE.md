@@ -10,11 +10,11 @@
 ```bash
 gcloud compute ssh instance-20251019-062935 \
     --zone=us-central1-f \
-    --project=swiftchair
+    --project=talkhint
 ```
 
 ### Или через браузер:
-https://console.cloud.google.com/compute/instances?project=swiftchair
+https://console.cloud.google.com/compute/instances?project=talkhint
 
 Нажмите **SSH** напротив instance-20251019-062935
 

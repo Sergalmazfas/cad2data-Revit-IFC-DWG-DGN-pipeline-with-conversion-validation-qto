@@ -19,14 +19,14 @@ Write-Host "====================================================================
 Write-Host ""
 Write-Host "Date: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -ForegroundColor White
 Write-Host "Instance: instance-20251019-062935" -ForegroundColor White
-Write-Host "Project: swiftchair" -ForegroundColor White
+Write-Host "Project: talkhint" -ForegroundColor White
 Write-Host ""
 
 $verificationStart = Get-Date
 $results = @{
     timestamp = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
     instance = "instance-20251019-062935"
-    project = "swiftchair"
+    project = "talkhint"
     version = "1.0.0-basman"
     categories = @{}
     overall_status = "in_progress"
