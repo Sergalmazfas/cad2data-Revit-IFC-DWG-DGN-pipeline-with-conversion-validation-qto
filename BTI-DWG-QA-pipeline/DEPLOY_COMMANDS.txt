@@ -1,0 +1,199 @@
+═══════════════════════════════════════════════════════════════════════════════
+BTI DWG QA Pipeline v1.0.0-basman-telegram - PRODUCTION DEPLOYMENT COMMANDS
+═══════════════════════════════════════════════════════════════════════════════
+
+Instance: instance-20251019-062935
+Zone: us-central1-f
+Project: swiftchair
+External IP: 104.198.201.212
+
+═══════════════════════════════════════════════════════════════════════════════
+ШАГ 1: ПОДКЛЮЧЕНИЕ К VM (с вашего Mac/Linux)
+═══════════════════════════════════════════════════════════════════════════════
+
+gcloud compute ssh instance-20251019-062935 --zone=us-central1-f --project=swiftchair
+
+
+═══════════════════════════════════════════════════════════════════════════════
+ШАГ 2: КЛОНИРОВАНИЕ РЕПОЗИТОРИЯ (на Windows VM PowerShell)
+═══════════════════════════════════════════════════════════════════════════════
+
+cd C:\Users\Administrator
+git clone https://github.com/Sergalmazfas/cad2data-Revit-IFC-DWG-DGN-pipeline-with-conversion-validation-qto.git
+cd cad2data-Revit-IFC-DWG-DGN-pipeline-with-conversion-validation-qto
+git checkout release/DWG-QA-v1
+cd BTI-DWG-QA-pipeline\deployment
+
+
+═══════════════════════════════════════════════════════════════════════════════
+ШАГ 3: ONE-CLICK DEPLOYMENT (30-40 минут, все автоматически)
+═══════════════════════════════════════════════════════════════════════════════
+
+.\deploy_all.ps1
+
+
+Этот скрипт выполнит автоматически:
+  [1/7] Main deployment (Node.js, n8n, Python, SDK)          10-15 мин
+  [2/7] Firewall configuration (GCP + Windows)               2-3 мин
+  [3/7] Cloud Logging setup (Ops Agent)                      3-5 мин
+  [4/7] Import workflows (5 n8n workflows)                   1-2 мин
+  [5/7] Telegram integration (Python + aiogram + Bot Service) 5-8 мин
+  [6/7] Smoke test (30 checks)                               1-2 мин
+  [7/7] Basmanny test (24 checks)                            1-2 мин
+
+
+═══════════════════════════════════════════════════════════════════════════════
+ШАГ 4: ПРОВЕРКА DEPLOYMENT (2-3 минуты)
+═══════════════════════════════════════════════════════════════════════════════
+
+.\verify_deployment.ps1
+
+Ожидаемый результат:
+  Total Checks: 40+
+  Passed: 40+
+  Failed: 0
+  Pass Rate: 100%
+  
+  ✅ DEPLOYMENT VERIFICATION PASSED!
+
+
+═══════════════════════════════════════════════════════════════════════════════
+ШАГ 5: ТЕСТ TELEGRAM БОТА (2 минуты)
+═══════════════════════════════════════════════════════════════════════════════
+
+.\test_telegram_bot.ps1
+
+Ожидаемый результат:
+  Total Tests: 17
+  Passed: 17
+  Failed: 0
+  Pass Rate: 100%
+  
+  ✅ Telegram Bot Integration: READY!
+
+
+═══════════════════════════════════════════════════════════════════════════════
+ШАГ 6: АКТИВАЦИЯ WORKFLOWS В n8n UI
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Откройте браузер: http://104.198.201.212:5678
+
+2. Активируйте workflows:
+   - BTI_0_Watch_Input_AutoStart → Click "Active" ✅
+   - BTI_4_Telegram_Webhook → Click "Active" ✅
+
+3. Настройте пути (если нужно):
+   - BTI_1_DWG_Convert → Setup node → path_to_dwg_converter
+
+
+═══════════════════════════════════════════════════════════════════════════════
+ШАГ 7: ПЕРВЫЙ ТЕСТ
+═══════════════════════════════════════════════════════════════════════════════
+
+ВАРИАНТ A: Через Telegram (рекомендуется)
+──────────────────────────────────────────
+1. Откройте Telegram
+2. Найдите @N8Ndwg_bot
+3. Отправьте /start
+4. Загрузите любой .dwg файл
+5. Подождите 30-60 секунд
+6. Получите 3 файла:
+   - project_basman.dwg (с шаблоном Басманный)
+   - qa_log.json (QA отчет)
+   - project_QTO.html (метрики)
+
+ВАРИАНТ B: Прямое копирование файла
+──────────────────────────────────────────
+Copy-Item "C:\your\file.dwg" "C:\bti\input\test.dwg"
+
+Подождите 30 секунд, проверьте результаты:
+Get-ChildItem C:\bti\output\converted\    # *_basman.dwg
+Get-ChildItem C:\bti\output\*.xlsx         # *.xlsx
+Get-Content C:\bti\output\logs\qa_log.json # QA results
+
+
+═══════════════════════════════════════════════════════════════════════════════
+МОНИТОРИНГ И ПРОВЕРКА
+═══════════════════════════════════════════════════════════════════════════════
+
+Проверка сервисов:
+──────────────────
+Get-Service -Name "n8n", "N8NdwgBot", "google-cloud-ops-agent"
+
+Ожидаемый вывод:
+  Status   Name                       DisplayName
+  ------   ----                       -----------
+  Running  n8n                        n8n BTI DWG QA Pipeline
+  Running  N8NdwgBot                  BTI Telegram Bot
+  Running  google-cloud-ops-agent     Google Cloud Ops Agent
+
+
+Проверка логов:
+──────────────────
+Get-Content C:\bti\output\logs\telegram_bot.log -Tail 20 -Wait
+Get-Content C:\bti\output\logs\qa_log.json
+Get-Content C:\bti\output\logs\telegram_triggers.json
+
+
+Cloud Logging (с Mac/Linux):
+──────────────────────────────
+gcloud logging read "jsonPayload.pipeline_name=\"BTI-DWG-QA\"" --project=swiftchair --limit=20
+
+
+n8n Execution History:
+──────────────────────────────
+http://104.198.201.212:5678 → Executions
+
+
+═══════════════════════════════════════════════════════════════════════════════
+TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════════════════════
+
+Если n8n не запустился:
+──────────────────────────────
+Restart-Service -Name "n8n" -Force
+Get-Service -Name "n8n"
+
+
+Если Telegram бот не работает:
+──────────────────────────────
+Restart-Service -Name "N8NdwgBot" -Force
+Get-Content C:\bti\output\logs\telegram_bot_stderr.log -Tail 20
+
+
+Если файлы не обрабатываются:
+──────────────────────────────
+# Проверить File Watcher в n8n UI
+# Убедиться что BTI_0_Watch_Input_AutoStart активен
+
+
+Если Telegram не отправляет результаты:
+──────────────────────────────────────────
+[Environment]::GetEnvironmentVariable("TELEGRAM_BOT_TOKEN", "Machine")
+# Должен быть непустой
+
+
+═══════════════════════════════════════════════════════════════════════════════
+ГОТОВО! СИСТЕМА РАБОТАЕТ!
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ n8n: http://104.198.201.212:5678
+✅ Telegram Bot: @N8Ndwg_bot
+✅ Auto-Start: Активен
+✅ Basmanny Template: Загружен (51 KB)
+✅ Cloud Logging: Работает
+✅ Все тесты: Пройдены (111+)
+
+🎊 Просто загружайте DWG файлы через Telegram или в C:\bti\input\
+   и получайте результаты автоматически!
+
+═══════════════════════════════════════════════════════════════════════════════
+ПОДДЕРЖКА
+═══════════════════════════════════════════════════════════════════════════════
+
+GitHub: https://github.com/Sergalmazfas/cad2data-Revit-IFC-DWG-DGN-pipeline-with-conversion-validation-qto/tree/release/DWG-QA-v1
+Email: info@datadrivenconstruction.io
+Документация: BTI-DWG-QA-pipeline/START_HERE.md
+
+═══════════════════════════════════════════════════════════════════════════════
+
