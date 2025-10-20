@@ -1,0 +1,39 @@
+{
+  "version": "1.0",
+  "description": "DWG Converter Settings for BTI Pipeline",
+  "converters": {
+    "odafileconverter": {
+      "name": "ODA File Converter",
+      "executable": "ODAFileConverter",
+      "supported_versions": ["AutoCAD 2000 - 2024"],
+      "output_format": "DXF",
+      "free": true,
+      "url": "https://www.opendesign.com/guestfiles/oda_file_converter"
+    },
+    "libredwg": {
+      "name": "LibreDWG",
+      "executable": "dwg2dxf",
+      "supported_versions": ["AutoCAD R13 - 2018"],
+      "output_format": "DXF",
+      "free": true,
+      "open_source": true,
+      "url": "https://www.gnu.org/software/libredwg/"
+    },
+    "ddc_dwg_converter": {
+      "name": "DDC DWG Converter",
+      "executable": "DwgExporter.exe",
+      "supported_versions": ["AutoCAD 1983 - 2026"],
+      "output_format": "XLSX + PDF",
+      "path": "../DDC_CONVERTER_DWG/datadrivenlibs/DwgExporter.exe"
+    }
+  },
+  "conversion_settings": {
+    "extract_layers": true,
+    "extract_blocks": true,
+    "extract_entities": true,
+    "extract_properties": true,
+    "calculate_geometry": true,
+    "export_pdf": false
+  }
+}
+

@@ -1,0 +1,146 @@
+{
+  "name": "BTI_1_DWG_Convert",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [480, -16],
+      "id": "manual-trigger-1",
+      "name": "Start - Click to Convert DWG"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "converter-path-id",
+              "name": "path_to_dwg_converter",
+              "value": "C:\\DDC_CONVERTER_DWG\\datadrivenlibs\\DwgExporter.exe",
+              "type": "string"
+            },
+            {
+              "id": "project-file-id",
+              "name": "dwg_file_path",
+              "value": "C:\\Sample_Projects\\architectural_example.dwg",
+              "type": "string"
+            },
+            {
+              "id": "output-folder-id",
+              "name": "output_folder",
+              "value": "C:\\Output",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [688, -16],
+      "id": "set-paths-1",
+      "name": "Setup - Define DWG Paths"
+    },
+    {
+      "parameters": {
+        "command": "=\"{{$json[\"path_to_dwg_converter\"]}}\" \"{{$json[\"dwg_file_path\"]}}\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [880, -16],
+      "id": "execute-convert-1",
+      "name": "Convert DWG to XLSX"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "xlsx-output-id",
+              "name": "xlsx_filename",
+              "value": "={{ $json[\"dwg_file_path\"].replace('.dwg', '_dwg.xlsx') }}",
+              "type": "string"
+            },
+            {
+              "id": "timestamp-id",
+              "name": "conversion_timestamp",
+              "value": "={{ new Date().toISOString() }}",
+              "type": "string"
+            },
+            {
+              "id": "status-id",
+              "name": "conversion_status",
+              "value": "Success",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1072, -16],
+      "id": "set-results-1",
+      "name": "Set Conversion Results"
+    },
+    {
+      "parameters": {
+        "content": "## 🏗️ BTI DWG Converter\n\n**Purpose**: Convert DWG files to structured XLSX format for BTI analysis\n\n**Supported converters**:\n- ODAFileConverter (free)\n- LibreDWG (open-source)\n- DDC DWG Converter\n\n**Output**: XLSX file with layers, blocks, entities, properties",
+        "height": 400,
+        "width": 300,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [380, -300],
+      "id": "sticky-note-1",
+      "name": "Info Note"
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ CONFIGURATION\n\n**Update these paths:**\n\n1. `path_to_dwg_converter`\n   Path to DwgExporter.exe\n\n2. `dwg_file_path`\n   Input DWG file\n\n3. `output_folder`\n   Where to save results",
+        "height": 400,
+        "width": 240,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [640, -300],
+      "id": "sticky-note-2",
+      "name": "Configuration Note"
+    },
+    {
+      "parameters": {
+        "content": "## ✅ Next Steps\n\nAfter conversion:\n1. Check output folder\n2. Open XLSX file\n3. Run validation workflow\n4. Generate QA report",
+        "height": 280,
+        "width": 240,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1020, -300],
+      "id": "sticky-note-3",
+      "name": "Next Steps Note"
+    }
+  ],
+  "connections": {
+    "Start - Click to Convert DWG": {
+      "main": [[{"node": "Setup - Define DWG Paths", "type": "main", "index": 0}]]
+    },
+    "Setup - Define DWG Paths": {
+      "main": [[{"node": "Convert DWG to XLSX", "type": "main", "index": 0}]]
+    },
+    "Convert DWG to XLSX": {
+      "main": [[{"node": "Set Conversion Results", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-10-20T00:00:00.000Z",
+  "versionId": "1"
+}
+

@@ -1,0 +1,147 @@
+{
+  "name": "BTI_3_DWG_QTO",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [360, 240],
+      "id": "manual-trigger-qto",
+      "name": "Start - Click to Generate QTO"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "xlsx-input-id",
+              "name": "xlsx_file_path",
+              "value": "C:\\Output\\architectural_example_dwg.xlsx",
+              "type": "string"
+            },
+            {
+              "id": "output-report-id",
+              "name": "output_report_path",
+              "value": "C:\\Output\\BTI_QTO_Report.html",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [560, 240],
+      "id": "set-qto-paths",
+      "name": "Setup - Define QTO Paths"
+    },
+    {
+      "parameters": {
+        "filePath": "={{ $json[\"xlsx_file_path\"] }}"
+      },
+      "type": "n8n-nodes-base.readBinaryFile",
+      "typeVersion": 1,
+      "position": [760, 240],
+      "id": "read-dwg-xlsx",
+      "name": "Read DWG XLSX Data"
+    },
+    {
+      "parameters": {
+        "fileFormat": "xlsx",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "typeVersion": 2,
+      "position": [960, 240],
+      "id": "parse-dwg-xlsx",
+      "name": "Parse XLSX to JSON"
+    },
+    {
+      "parameters": {
+        "jsCode": "// BTI QTO Calculation Logic\nconst data = $input.all();\nconst qtoResults = {\n  total_area: 0,\n  total_perimeter: 0,\n  entities_by_layer: {},\n  entities_by_type: {},\n  windows_count: 0,\n  doors_count: 0,\n  rooms: []\n};\n\nfor (const item of data) {\n  const row = item.json;\n  \n  // Sum total area and perimeter\n  if (row.Area && !isNaN(row.Area)) {\n    qtoResults.total_area += parseFloat(row.Area);\n  }\n  if (row.Perimeter && !isNaN(row.Perimeter)) {\n    qtoResults.total_perimeter += parseFloat(row.Perimeter);\n  }\n  \n  // Group by layer\n  const layer = row.Layer || 'unknown';\n  if (!qtoResults.entities_by_layer[layer]) {\n    qtoResults.entities_by_layer[layer] = { count: 0, area: 0, perimeter: 0 };\n  }\n  qtoResults.entities_by_layer[layer].count++;\n  if (row.Area) qtoResults.entities_by_layer[layer].area += parseFloat(row.Area || 0);\n  if (row.Perimeter) qtoResults.entities_by_layer[layer].perimeter += parseFloat(row.Perimeter || 0);\n  \n  // Group by entity type\n  const entityType = row.EntityType || row.Type || 'unknown';\n  if (!qtoResults.entities_by_type[entityType]) {\n    qtoResults.entities_by_type[entityType] = { count: 0, area: 0 };\n  }\n  qtoResults.entities_by_type[entityType].count++;\n  if (row.Area) qtoResults.entities_by_type[entityType].area += parseFloat(row.Area || 0);\n  \n  // Count windows and doors\n  const layerLower = layer.toLowerCase();\n  const typeLower = entityType.toLowerCase();\n  if (layerLower.includes('window') || typeLower.includes('window')) {\n    qtoResults.windows_count++;\n  }\n  if (layerLower.includes('door') || typeLower.includes('door')) {\n    qtoResults.doors_count++;\n  }\n  \n  // Extract room information\n  if (layerLower.includes('room') || typeLower.includes('room') || layerLower.includes('space')) {\n    qtoResults.rooms.push({\n      name: row.Name || row.RoomName || 'Unnamed Room',\n      area: parseFloat(row.Area || 0),\n      perimeter: parseFloat(row.Perimeter || 0)\n    });\n  }\n}\n\n// Round values\nqtoResults.total_area = Math.round(qtoResults.total_area * 100) / 100;\nqtoResults.total_perimeter = Math.round(qtoResults.total_perimeter * 100) / 100;\n\nreturn [{ json: qtoResults }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1160, 240],
+      "id": "calculate-qto",
+      "name": "Calculate QTO Metrics"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate HTML QTO Report\nconst qto = $input.first().json;\nconst timestamp = new Date().toISOString();\n\nconst html = `\n<!DOCTYPE html>\n<html lang=\"ru\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>BTI QTO Report</title>\n  <style>\n    body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }\n    .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }\n    h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }\n    h2 { color: #34495e; margin-top: 30px; }\n    .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0; }\n    .metric-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; text-align: center; }\n    .metric-card h3 { margin: 0; font-size: 14px; opacity: 0.9; }\n    .metric-card .value { font-size: 32px; font-weight: bold; margin: 10px 0; }\n    .metric-card .unit { font-size: 14px; opacity: 0.8; }\n    table { width: 100%; border-collapse: collapse; margin: 20px 0; }\n    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }\n    th { background: #3498db; color: white; font-weight: bold; }\n    tr:hover { background: #f5f5f5; }\n    .footer { margin-top: 30px; padding-top: 20px; border-top: 2px solid #eee; color: #7f8c8d; font-size: 12px; text-align: center; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <h1>📊 BTI Quantity Take-Off Report</h1>\n    <p><strong>Generated:</strong> ${new Date(timestamp).toLocaleString('ru-RU')}</p>\n    \n    <div class=\"summary\">\n      <div class=\"metric-card\">\n        <h3>Total Area</h3>\n        <div class=\"value\">${qto.total_area.toFixed(2)}</div>\n        <div class=\"unit\">m²</div>\n      </div>\n      <div class=\"metric-card\">\n        <h3>Total Perimeter</h3>\n        <div class=\"value\">${qto.total_perimeter.toFixed(2)}</div>\n        <div class=\"unit\">m</div>\n      </div>\n      <div class=\"metric-card\">\n        <h3>Windows</h3>\n        <div class=\"value\">${qto.windows_count}</div>\n        <div class=\"unit\">units</div>\n      </div>\n      <div class=\"metric-card\">\n        <h3>Doors</h3>\n        <div class=\"value\">${qto.doors_count}</div>\n        <div class=\"unit\">units</div>\n      </div>\n    </div>\n    \n    <h2>📋 Entities by Layer</h2>\n    <table>\n      <thead>\n        <tr>\n          <th>Layer Name</th>\n          <th>Count</th>\n          <th>Total Area (m²)</th>\n          <th>Total Perimeter (m)</th>\n        </tr>\n      </thead>\n      <tbody>\n        ${Object.entries(qto.entities_by_layer).map(([layer, data]) => `\n          <tr>\n            <td>${layer}</td>\n            <td>${data.count}</td>\n            <td>${data.area.toFixed(2)}</td>\n            <td>${data.perimeter.toFixed(2)}</td>\n          </tr>\n        `).join('')}\n      </tbody>\n    </table>\n    \n    <h2>🏗️ Entities by Type</h2>\n    <table>\n      <thead>\n        <tr>\n          <th>Entity Type</th>\n          <th>Count</th>\n          <th>Total Area (m²)</th>\n        </tr>\n      </thead>\n      <tbody>\n        ${Object.entries(qto.entities_by_type).map(([type, data]) => `\n          <tr>\n            <td>${type}</td>\n            <td>${data.count}</td>\n            <td>${data.area.toFixed(2)}</td>\n          </tr>\n        `).join('')}\n      </tbody>\n    </table>\n    \n    ${qto.rooms.length > 0 ? `\n    <h2>🏠 Rooms Summary</h2>\n    <table>\n      <thead>\n        <tr>\n          <th>Room Name</th>\n          <th>Area (m²)</th>\n          <th>Perimeter (m)</th>\n        </tr>\n      </thead>\n      <tbody>\n        ${qto.rooms.map(room => `\n          <tr>\n            <td>${room.name}</td>\n            <td>${room.area.toFixed(2)}</td>\n            <td>${room.perimeter.toFixed(2)}</td>\n          </tr>\n        `).join('')}\n      </tbody>\n    </table>\n    ` : ''}\n    \n    <div class=\"footer\">\n      <p>BTI DWG QA Pipeline v1.0 | Generated automatically with n8n</p>\n    </div>\n  </div>\n</body>\n</html>\n`;\n\nreturn [{ json: { html_content: html } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1360, 240],
+      "id": "generate-html-report",
+      "name": "Generate HTML Report"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $json[\"output_report_path\"] || 'BTI_QTO_Report.html' }}",
+        "data": "={{ $json.html_content }}"
+      },
+      "type": "n8n-nodes-base.filesReadWrite",
+      "typeVersion": 1,
+      "position": [1560, 240],
+      "id": "save-html-report",
+      "name": "Save HTML Report"
+    },
+    {
+      "parameters": {
+        "content": "## 📊 BTI QTO Generator\n\n**Calculated Metrics:**\n- Total area (m²)\n- Total perimeter (m)\n- Windows count\n- Doors count\n- Entities by layer\n- Entities by type\n- Room summaries\n\n**Output**: Beautiful HTML report",
+        "height": 420,
+        "width": 280,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [260, -80],
+      "id": "sticky-note-qto-1",
+      "name": "QTO Info"
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ CONFIGURATION\n\n**Set paths:**\n\n1. `xlsx_file_path`\n   Converted DWG data\n\n2. `output_report_path`\n   Where to save HTML report\n\n**Report auto-opens in browser**",
+        "height": 420,
+        "width": 260,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [520, -80],
+      "id": "sticky-note-qto-2",
+      "name": "Config Note"
+    }
+  ],
+  "connections": {
+    "Start - Click to Generate QTO": {
+      "main": [[{"node": "Setup - Define QTO Paths", "type": "main", "index": 0}]]
+    },
+    "Setup - Define QTO Paths": {
+      "main": [[{"node": "Read DWG XLSX Data", "type": "main", "index": 0}]]
+    },
+    "Read DWG XLSX Data": {
+      "main": [[{"node": "Parse XLSX to JSON", "type": "main", "index": 0}]]
+    },
+    "Parse XLSX to JSON": {
+      "main": [[{"node": "Calculate QTO Metrics", "type": "main", "index": 0}]]
+    },
+    "Calculate QTO Metrics": {
+      "main": [[{"node": "Generate HTML Report", "type": "main", "index": 0}]]
+    },
+    "Generate HTML Report": {
+      "main": [[{"node": "Save HTML Report", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-10-20T00:00:00.000Z",
+  "versionId": "1"
+}
+

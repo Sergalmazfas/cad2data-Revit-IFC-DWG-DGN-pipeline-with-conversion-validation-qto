@@ -1,0 +1,45 @@
+# BTI DWG QA Pipeline - gitignore
+
+# Output files
+*.xlsx
+*.dwg
+*.dxf
+*.pdf
+*.html
+output/
+Output/
+
+# Logs
+logs/
+*.log
+*.txt
+qa_*.json
+
+# Node modules
+node_modules/
+package-lock.json
+
+# n8n
+.n8n/
+.n8nrc
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Sample projects (uncomment if you want to ignore)
+# sample_projects/
+

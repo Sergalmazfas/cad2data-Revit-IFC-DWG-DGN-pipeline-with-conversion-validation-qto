@@ -1,0 +1,53 @@
+{
+  "version": "1.0",
+  "description": "BTI DWG Validation Rules",
+  "rules": {
+    "required_layers": [
+      "WALLS",
+      "WINDOWS",
+      "DOORS",
+      "ROOMS",
+      "DIMENSIONS"
+    ],
+    "entity_checks": {
+      "area_min": 0.1,
+      "area_max": 10000,
+      "perimeter_min": 0.1,
+      "perimeter_max": 1000
+    },
+    "layer_naming": {
+      "pattern": "^[A-Z0-9_-]+$",
+      "description": "Layer names must be uppercase alphanumeric with underscores or hyphens"
+    },
+    "coordinate_system": {
+      "min_x": -100000,
+      "max_x": 100000,
+      "min_y": -100000,
+      "max_y": 100000
+    },
+    "quality_thresholds": {
+      "min_pass_rate": 90,
+      "max_errors": 50,
+      "max_warnings": 100
+    }
+  },
+  "bti_specific": {
+    "required_room_properties": [
+      "Area",
+      "Perimeter",
+      "RoomName",
+      "RoomNumber"
+    ],
+    "required_wall_properties": [
+      "Length",
+      "Height",
+      "Thickness"
+    ],
+    "required_door_window_properties": [
+      "Width",
+      "Height",
+      "Type"
+    ]
+  }
+}
+

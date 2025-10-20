@@ -1,0 +1,161 @@
+{
+  "name": "BTI_2_DWG_Validation",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [380, 160],
+      "id": "manual-trigger-validation",
+      "name": "Start - Click to Validate"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "xlsx-path-id",
+              "name": "xlsx_file_path",
+              "value": "C:\\Output\\architectural_example_dwg.xlsx",
+              "type": "string"
+            },
+            {
+              "id": "validation-rules-id",
+              "name": "validation_rules_path",
+              "value": "C:\\BTI-DWG-QA-pipeline\\config\\validation_rules.json",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [580, 160],
+      "id": "set-validation-paths",
+      "name": "Setup - Define Validation Paths"
+    },
+    {
+      "parameters": {
+        "filePath": "={{ $json[\"xlsx_file_path\"] }}"
+      },
+      "type": "n8n-nodes-base.readBinaryFile",
+      "typeVersion": 1,
+      "position": [780, 160],
+      "id": "read-xlsx-file",
+      "name": "Read DWG XLSX Data"
+    },
+    {
+      "parameters": {
+        "fileFormat": "xlsx",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "typeVersion": 2,
+      "position": [980, 160],
+      "id": "parse-xlsx",
+      "name": "Parse XLSX to JSON"
+    },
+    {
+      "parameters": {
+        "jsCode": "// BTI DWG Validation Logic\nconst data = $input.all();\nconst validationResults = [];\n\nfor (const item of data) {\n  const rowData = item.json;\n  \n  // Validation checks for BTI requirements\n  const checks = {\n    layer_exists: rowData.Layer !== undefined && rowData.Layer !== '',\n    entity_type_valid: rowData.EntityType !== undefined,\n    area_calculated: rowData.Area !== undefined && rowData.Area > 0,\n    perimeter_calculated: rowData.Perimeter !== undefined && rowData.Perimeter > 0,\n    coordinates_valid: rowData.X !== undefined && rowData.Y !== undefined\n  };\n  \n  // Count issues\n  const issues = [];\n  if (!checks.layer_exists) issues.push('Missing layer information');\n  if (!checks.entity_type_valid) issues.push('Invalid entity type');\n  if (!checks.area_calculated) issues.push('Area not calculated');\n  if (!checks.perimeter_calculated) issues.push('Perimeter not calculated');\n  if (!checks.coordinates_valid) issues.push('Missing coordinates');\n  \n  validationResults.push({\n    json: {\n      entity_id: rowData.Handle || rowData.ElementId || 'unknown',\n      layer: rowData.Layer || 'unknown',\n      entity_type: rowData.EntityType || 'unknown',\n      checks: checks,\n      issues: issues,\n      status: issues.length === 0 ? 'PASS' : 'FAIL',\n      issues_count: issues.length\n    }\n  });\n}\n\nreturn validationResults;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1180, 160],
+      "id": "validate-data",
+      "name": "Validate BTI Requirements"
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [1380, 160],
+      "id": "create-validation-report",
+      "name": "Create Validation Report"
+    },
+    {
+      "parameters": {
+        "fileName": "={{ 'BTI_Validation_Report_' + new Date().toISOString().split('T')[0] + '.json' }}",
+        "filePath": "={{ $json[\"xlsx_file_path\"].replace('.xlsx', '_validation.json') }}"
+      },
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [1580, 160],
+      "id": "save-validation-report",
+      "name": "Save Validation Report"
+    },
+    {
+      "parameters": {
+        "content": "## 🔍 BTI DWG Validation\n\n**Validation Checks:**\n- Layer existence\n- Entity type validity\n- Area calculation\n- Perimeter calculation\n- Coordinate validity\n\n**Output**: JSON validation report with PASS/FAIL status",
+        "height": 400,
+        "width": 280,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [280, -120],
+      "id": "sticky-note-validation-1",
+      "name": "Validation Info"
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ CONFIGURATION\n\n**Required paths:**\n\n1. `xlsx_file_path`\n   DWG data in XLSX format\n\n2. `validation_rules_path`\n   Validation rules JSON file\n\n**Customize validation logic** in the Code node",
+        "height": 400,
+        "width": 260,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [540, -120],
+      "id": "sticky-note-validation-2",
+      "name": "Configuration Note"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate Summary Statistics\nconst items = $input.all();\nconst summary = {\n  total_entities: items.length,\n  passed: items.filter(i => i.json.status === 'PASS').length,\n  failed: items.filter(i => i.json.status === 'FAIL').length,\n  validation_timestamp: new Date().toISOString(),\n  issues_by_type: {}\n};\n\n// Count issues by type\nfor (const item of items) {\n  if (item.json.issues && item.json.issues.length > 0) {\n    for (const issue of item.json.issues) {\n      summary.issues_by_type[issue] = (summary.issues_by_type[issue] || 0) + 1;\n    }\n  }\n}\n\nsummary.pass_rate = ((summary.passed / summary.total_entities) * 100).toFixed(2) + '%';\n\nreturn [{ json: summary }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1380, 360],
+      "id": "generate-summary",
+      "name": "Generate Summary Statistics"
+    }
+  ],
+  "connections": {
+    "Start - Click to Validate": {
+      "main": [[{"node": "Setup - Define Validation Paths", "type": "main", "index": 0}]]
+    },
+    "Setup - Define Validation Paths": {
+      "main": [[{"node": "Read DWG XLSX Data", "type": "main", "index": 0}]]
+    },
+    "Read DWG XLSX Data": {
+      "main": [[{"node": "Parse XLSX to JSON", "type": "main", "index": 0}]]
+    },
+    "Parse XLSX to JSON": {
+      "main": [[{"node": "Validate BTI Requirements", "type": "main", "index": 0}]]
+    },
+    "Validate BTI Requirements": {
+      "main": [[
+        {"node": "Create Validation Report", "type": "main", "index": 0},
+        {"node": "Generate Summary Statistics", "type": "main", "index": 0}
+      ]]
+    },
+    "Create Validation Report": {
+      "main": [[{"node": "Save Validation Report", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-10-20T00:00:00.000Z",
+  "versionId": "1"
+}
+
